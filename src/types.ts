@@ -1,6 +1,6 @@
 export type ReaderMethod = "readability" | "r.jina.ai";
 
-type ModKey = "altKey" | "ctrlKey" | "metaKey" | "shiftKey";
+export type ModKey = "altKey" | "ctrlKey" | "metaKey" | "shiftKey";
 export type Bind = {
   key: string;
   mod: ModKey;

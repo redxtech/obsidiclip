@@ -9,7 +9,7 @@
       :show-feedback="false"
     >
       <n-collapse arrow-placement="right" :default-expanded-names="['1', '2']">
-        <n-collapse-item title="Obsidian settings" name="1">
+        <n-collapse-item title="Obsidian Settings" name="1">
           <n-space vertical>
             <n-form-item
               label="Vault"
@@ -74,6 +74,36 @@
                 @change="handleChange('openInNewTab', $event)"
               />
             </n-form-item>
+            <n-form-item
+              label="Default ModKey"
+              path="modifierKey"
+              :label-width="extensionLabelWidth"
+            >
+              <n-select
+                v-model:value="obsidiclipPreferences.modifierKey"
+                :options="modifierKeyOptions"
+                :on-update:value="
+                  (val: ModKey) => {
+                    obsidiclipPreferences.modifierKey = val;
+                    handleChange('modifierKey', val);
+                  }
+                "
+              />
+            </n-form-item>
+            <n-form-item
+              label="Key"
+              path="keybind"
+              :label-width="extensionLabelWidth"
+            >
+              <n-input
+                v-model:value="obsidiclipPreferences.keybind"
+                autosize
+                type="text"
+                placeholder="keypress"
+                style="min-width: 8rem"
+                @change="handleChange('keybind', $event)"
+              />
+            </n-form-item>
           </n-space>
         </n-collapse-item>
       </n-collapse>
@@ -93,12 +123,13 @@ import {
   NInput,
   NRadioButton,
   NRadioGroup,
+  NSelect,
   NSpace,
   NSwitch,
 } from "naive-ui";
 
 import { DefaultConfig } from "~/entries/contentScript/utils";
-import { ObsidiclipPrefs, ReaderMethod } from "~/types";
+import { ObsidiclipPrefs, ReaderMethod, ModKey } from "~/types";
 
 // label widths, to keep sections aligned
 const obsidianLabelWidth = 60;
@@ -107,6 +138,13 @@ const extensionLabelWidth = 120;
 // settings
 const obsidiclipPreferences = ref<ObsidiclipPrefs>(DefaultConfig);
 const rules = {};
+
+const modifierKeyOptions = [
+  { label: "Ctrl", value: "ctrlKey" },
+  { label: "Alt", value: "altKey" },
+  { label: "Shift", value: "shiftKey" },
+  { label: "Meta", value: "metaKey" },
+];
 
 // immediately save changes to browser storage
 const handleChange = (key: string, value: string) => {
@@ -119,12 +157,12 @@ const handleChange = (key: string, value: string) => {
 // load options from browser storage on mount
 onMounted(async () => {
   // load options with fallback values
-  const options = await browser.storage.local.get(DefaultConfig);
+  const options = (await browser.storage.local.get(
+    DefaultConfig,
+  )) as ObsidiclipPrefs;
 
-  if (options.vault) obsidiclipPreferences.value.vault = options.vault;
-  if (options.folder) obsidiclipPreferences.value.folder = options.folder;
-  obsidiclipPreferences.value.readerMethod = options.readerMethod;
-  obsidiclipPreferences.value.openInNewTab = options.openInNewTab;
+  // apply options to reactive state
+  if (options) obsidiclipPreferences.value = options;
 });
 </script>
 

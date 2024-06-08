@@ -58,12 +58,11 @@ browser.runtime.onMessage.addListener(async (message) => {
 
 // get list of all binds, and listen for them
 browser.storage.local.get(DefaultConfig).then((options) => {
-  console.log(options);
   // combine the default binds with any custom binds
   const allBinds: Bind[] = [
     {
-      mod: options.mod,
-      key: options.key,
+      mod: options.modifierKey,
+      key: options.keybind,
     },
     ...options.customBinds,
   ];

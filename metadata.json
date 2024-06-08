@@ -1,0 +1,18 @@
+{
+  "name": {
+    "en-US": "Obsidiclip"
+  },
+  "summary": {
+    "en-US": "An obsidian web clipper that actually works!"
+  },
+  "description": {
+    "en-US": "An obsidian web clipper that actually works!"
+  },
+  "categories": ["other"],
+  "tags": ["obsidian", "web clipper"],
+  "homepage": "https://github.com/redxtech/obsidiclip",
+  "is_experimental": true,
+  "version": {
+    "license": "MIT"
+  }
+}

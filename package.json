@@ -1,6 +1,6 @@
 {
   "name": "Obsidiclip",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Obsidiclip",
   "author": "Gabe Dunn <gabe@gabedunn.dev>",
   "description": "An obsidian web clipper that actually works",
@@ -9,8 +9,11 @@
     "build": "vue-tsc --noEmit && vite build",
     "watch": "vite build --watch --mode development --minify false",
     "dev": "vite",
+    "lint": "web-ext lint --source-dir ./dist/",
     "serve:firefox": "web-ext run --start-url \"about:debugging#/runtime/this-firefox\"  --source-dir ./dist/",
-    "serve:chrome": "web-ext run -t chromium --start-url \"https://example.com\" --source-dir ./dist/"
+    "prepkg:firefox": "npm run build",
+    "pkg:firefox": "web-ext sign --source-dir ./dist/ --amo-metadata ./metadata.json",
+    "pkg:firefox:private": "web-ext sign --source-dir ./dist/ --amo-metadata ./metadata.json --channel unlisted"
   },
   "license": "MIT",
   "devDependencies": {

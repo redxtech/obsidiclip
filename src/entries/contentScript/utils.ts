@@ -1,3 +1,20 @@
+import browser from "webextension-polyfill";
+import type { ObsidiclipPrefs } from "~/types";
+
+// config value getter
+const defaultConfig: ObsidiclipPrefs = {
+  vault: "Main",
+  folder: "read later",
+  readerMethod: "readability",
+  useNewTab: false,
+};
+
+export const config = async (key: keyof ObsidiclipPrefs) => {
+  const value = (await browser.storage.local.get(key))[key];
+
+  return !value ? defaultConfig[key] : value;
+};
+
 export function genFileName(title: string) {
   if (!title) return "untitled";
 

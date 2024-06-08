@@ -101,36 +101,37 @@ import {
   NSwitch,
 } from "naive-ui";
 
-const obsidianLabelWidth = 60;
+import { ReaderMethod } from "~/types";
 
+// label widths, to keep sections aligned
+const obsidianLabelWidth = 60;
+const extensionLabelWidth = 120;
+
+// obsidian settings
 const vault = ref<string | null>(null);
 const folder = ref<string | null>(null);
 
-type ReaderMethod = "readability" | "r.jina.ai";
-
-const extensionLabelWidth = 120;
-
+// extension settings
 const readerMethod = ref<ReaderMethod | null>(null);
 const openInNewTab = ref<boolean>(false);
 
+// immediately save changes to browser storage
 const handleChange = (key: string, value: string) => {
   const newOptions: Record<string, string> = {};
   newOptions[key] = value;
 
-  console.log(newOptions);
-
   browser.storage.local.set(newOptions);
 };
 
+// load options from browser storage on mount
 onMounted(async () => {
+  // load options with fallback values
   const options = await browser.storage.local.get({
     vault: null,
     folder: null,
     readerMethod: "readability",
     openInNewTab: false,
   });
-
-  console.log(options);
 
   if (options.vault) vault.value = options.vault;
   if (options.folder) folder.value = options.folder;

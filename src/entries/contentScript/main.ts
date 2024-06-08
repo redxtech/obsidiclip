@@ -1,65 +1,57 @@
 import browser from "webextension-polyfill";
-import { Readability } from "@mozilla/readability";
-import TurndownService from "turndown";
-import { genObsidianURI } from "./utils";
+import { config, genObsidianURI } from "./utils";
+import type { Prefs } from "~/types";
+import {
+  extractPageContentJinaAI,
+  extractPageContentReadability,
+} from "./content";
 
-// PREFS
 // TODO: move to options page
-
-type Bind = {
-  key: string;
-  mod: string;
-  vault: string;
-  folder: string;
-};
-
-type Prefs = {
-  binds: Bind[];
-};
-
 const prefs: Prefs = {
   binds: [
     {
       key: "l",
       mod: "altKey",
-      vault: "Main",
       folder: "read later",
     },
     {
       key: "c",
       mod: "altKey",
-      vault: "Main",
       folder: "the collection",
     },
   ],
 };
 
+// main function to clip the page
 async function clipPage(vault: string, folder: string) {
-  const clone = document.cloneNode(true) as Document;
-  const reader = new Readability(clone).parse();
+  const readerMethod = await config("readerMethod");
+  let content;
 
-  if (!reader) {
-    console.error("Failed to parse content");
+  // get the content based on the reader method
+  switch (readerMethod) {
+    case "readability":
+      content = extractPageContentReadability(document);
+      break;
+    case "r.jina.ai":
+      content = await extractPageContentJinaAI(window.location.href);
+      break;
+    default:
+      console.error("Invalid reader method");
+      return;
+  }
+
+  if (!content) {
+    console.error("Failed to extract page content");
     return;
   }
 
-  const turndownService = new TurndownService({
-    bulletListMarker: "-",
-    codeBlockStyle: "fenced",
-  });
-
-  const { title, content, byline } = reader;
-
-  const prepend = `# [${title}](${window.location.href})\n\n${byline ? byline + "\n\n" : ""}`;
-  const markdown = prepend + turndownService.turndown(content);
+  const { title, markdown } = content;
   const url = genObsidianURI(vault, folder, title, markdown);
 
   // open in new tab or current tab
-  if ((await browser.storage.local.get("useNewTab")).useNewTab) {
-    browser.runtime.sendMessage({ action: "openObsidian", url });
-  } else {
-    window.location.href = url;
-  }
+  (await config("useNewTab"))
+    ? browser.runtime.sendMessage({ action: "openObsidian", url })
+    : (window.location.href = url);
 
   console.log("clipped to obsidian");
 }
@@ -67,11 +59,8 @@ async function clipPage(vault: string, folder: string) {
 // listen for messages from the background script
 browser.runtime.onMessage.addListener(async (message) => {
   if (message.action === "clipPage") {
-    const vault =
-      (await browser.storage.local.get("vault").then((r) => r.vault)) || "Main";
-    const folder =
-      (await browser.storage.local.get("folder").then((r) => r.folder)) ||
-      "read later";
+    const vault = await config("vault");
+    const folder = await config("folder");
 
     await clipPage(vault, folder);
   }
@@ -82,7 +71,10 @@ for (const bind of prefs.binds) {
   window.addEventListener("keydown", async function (event: KeyboardEvent) {
     // @ts-expect-error - TS doesn't know about the mod property
     if (event[bind.mod] && event.key.toLowerCase() === bind.key) {
-      await clipPage(bind.vault, bind.folder);
+      // use the vault from the bind if it's set, otherwise use the default
+      const vault = bind.vault || (await config("vault"));
+      const folder = bind.folder || (await config("folder"));
+      await clipPage(vault, folder);
     }
   });
 }

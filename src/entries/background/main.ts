@@ -11,15 +11,6 @@ browser.browserAction.onClicked.addListener((tab) => {
   browser.tabs.sendMessage(tab.id, { action: "clipPage" });
 });
 
-function tabListener(tabId: number, changeInfo: any) {
-  console.log("tabListener", tabId, changeInfo);
-  if (changeInfo.status === "complete") {
-    setTimeout(() => {
-      browser.tabs.remove(tabId);
-    }, 500);
-  }
-}
-
 // listen for messages from the content script to
 // open a new tab with the obsidian URI
 browser.runtime.onMessage.addListener(async (message) => {

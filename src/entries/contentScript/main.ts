@@ -48,9 +48,10 @@ async function clipPage(vault: string, folder: string) {
     codeBlockStyle: "fenced",
   });
 
-  const { title, content } = reader;
+  const { title, content, byline } = reader;
 
-  const markdown = turndownService.turndown(content);
+  const prepend = `# [${title}](${window.location.href})\n\n${byline ? byline + "\n\n" : ""}`;
+  const markdown = prepend + turndownService.turndown(content);
   const url = genObsidianURI(vault, folder, title, markdown);
 
   // open in new tab or current tab

@@ -1,0 +1,33 @@
+{
+  "name": "Obsidiclip",
+  "version": "1.0.0",
+  "displayName": "Obsidiclip",
+  "author": "Gabe Dunn <gabe@gabedunn.dev>",
+  "description": "An obsidian web clipper that actually works",
+  "type": "module",
+  "scripts": {
+    "build": "vue-tsc --noEmit && vite build",
+    "watch": "vite build --watch --mode development --minify false",
+    "dev": "vite",
+    "serve:firefox": "web-ext run --start-url \"about:debugging#/runtime/this-firefox\"  --source-dir ./dist/",
+    "serve:chrome": "web-ext run -t chromium --start-url \"https://example.com\" --source-dir ./dist/"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@samrum/vite-plugin-web-extension": "^5.0.0",
+    "@types/chrome": "^0.0.254",
+    "@types/turndown": "^5.0.4",
+    "@types/webextension-polyfill": "^0.10.6",
+    "@vitejs/plugin-vue": "^4.5.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0",
+    "vue-tsc": "^1.8.22",
+    "web-ext": "^7.8.0"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.5.0",
+    "turndown": "^7.2.0",
+    "vue": "^3.3.8",
+    "webextension-polyfill": "^0.10.0"
+  }
+}

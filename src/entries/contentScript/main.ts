@@ -1,26 +1,16 @@
 import browser from "webextension-polyfill";
-import { config, genObsidianURI } from "./utils";
-import type { Prefs } from "~/types";
+
+import {
+  DefaultConfig,
+  config,
+  genObsidianURI,
+} from "~/entries/contentScript/utils";
 import {
   extractPageContentJinaAI,
   extractPageContentReadability,
-} from "./content";
+} from "~/entries/contentScript/content";
 
-// TODO: move to options page
-const prefs: Prefs = {
-  binds: [
-    {
-      key: "l",
-      mod: "altKey",
-      folder: "read later",
-    },
-    {
-      key: "c",
-      mod: "altKey",
-      folder: "the collection",
-    },
-  ],
-};
+import type { Bind } from "~/types";
 
 // main function to clip the page
 async function clipPage(vault: string, folder: string) {
@@ -49,7 +39,7 @@ async function clipPage(vault: string, folder: string) {
   const url = genObsidianURI(vault, folder, title, markdown);
 
   // open in new tab or current tab
-  (await config("useNewTab"))
+  (await config("openInNewTab"))
     ? browser.runtime.sendMessage({ action: "openObsidian", url })
     : (window.location.href = url);
 
@@ -66,15 +56,27 @@ browser.runtime.onMessage.addListener(async (message) => {
   }
 });
 
-// listen for keybinds
-for (const bind of prefs.binds) {
-  window.addEventListener("keydown", async function (event: KeyboardEvent) {
-    // @ts-expect-error - TS doesn't know about the mod property
-    if (event[bind.mod] && event.key.toLowerCase() === bind.key) {
-      // use the vault from the bind if it's set, otherwise use the default
-      const vault = bind.vault || (await config("vault"));
-      const folder = bind.folder || (await config("folder"));
-      await clipPage(vault, folder);
-    }
-  });
-}
+// get list of all binds, and listen for them
+browser.storage.local.get(DefaultConfig).then((options) => {
+  console.log(options);
+  // combine the default binds with any custom binds
+  const allBinds: Bind[] = [
+    {
+      mod: options.mod,
+      key: options.key,
+    },
+    ...options.customBinds,
+  ];
+
+  // listen for keybinds
+  for (const bind of allBinds) {
+    window.addEventListener("keydown", async function (event: KeyboardEvent) {
+      if (event[bind.mod] && event.key.toLowerCase() === bind.key) {
+        // use the vault from the bind if it's set, otherwise use the default
+        const vault = bind.vault || (await config("vault"));
+        const folder = bind.folder || (await config("folder"));
+        await clipPage(vault, folder);
+      }
+    });
+  }
+});

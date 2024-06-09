@@ -21,6 +21,8 @@
     "@types/chrome": "^0.0.254",
     "@types/turndown": "^5.0.4",
     "@types/webextension-polyfill": "^0.10.6",
+    "@vicons/fluent": "^0.12.0",
+    "@vicons/utils": "^0.1.4",
     "@vitejs/plugin-vue": "^4.5.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.0",

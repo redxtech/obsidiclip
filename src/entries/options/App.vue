@@ -8,7 +8,10 @@
       size="large"
       :show-feedback="false"
     >
-      <n-collapse arrow-placement="right" :default-expanded-names="['1', '2']">
+      <n-collapse
+        arrow-placement="right"
+        :default-expanded-names="['1', '2', '3']"
+      >
         <n-collapse-item title="Obsidian Settings" name="1">
           <n-space vertical>
             <n-form-item
@@ -82,6 +85,8 @@
               <n-select
                 v-model:value="obsidiclipPreferences.modifierKey"
                 :options="modifierKeyOptions"
+                :consistent-menu-width="false"
+                style="width: 5rem"
                 :on-update:value="
                   (val: ModKey) => {
                     obsidiclipPreferences.modifierKey = val;
@@ -97,13 +102,76 @@
             >
               <n-input
                 v-model:value="obsidiclipPreferences.keybind"
-                autosize
                 type="text"
                 placeholder="keypress"
-                style="min-width: 8rem"
+                autosize
+                style="min-width: 3rem"
                 @change="handleChange('keybind', $event)"
               />
             </n-form-item>
+          </n-space>
+        </n-collapse-item>
+        <n-collapse-item title="Custom Keybinds" name="3">
+          <n-space vertical>
+            <n-dynamic-input
+              v-model:value="obsidiclipPreferences.customBinds"
+              :on-create="onCreateBind"
+              :on-remove="handleBindChange"
+              #="{ index }"
+            >
+              <div
+                :style="{ display: 'flex', alignItems: 'center', gap: '8px' }"
+              >
+                <n-form-item
+                  ignore-path-change
+                  :path="`customBinds[${index}].mod`"
+                >
+                  <n-select
+                    v-model:value="obsidiclipPreferences.customBinds[index].mod"
+                    :options="modifierKeyOptions"
+                    :consistent-menu-width="false"
+                    style="width: 5rem"
+                    @update:value="handleBindChange()"
+                  />
+                </n-form-item>
+                <Icon size="18" color="#2c3e50">
+                  <Add12Filled />
+                </Icon>
+                <n-form-item
+                  ignore-path-change
+                  :show-label="false"
+                  :path="`customBinds[${index}].key`"
+                >
+                  <n-input
+                    v-model:value="obsidiclipPreferences.customBinds[index].key"
+                    type="text"
+                    placeholder="keypress"
+                    autosize
+                    style="min-width: 2.5rem"
+                    @change="handleBindChange()"
+                  />
+                </n-form-item>
+                <Icon size="24" color="#2c3e50">
+                  <FolderArrowRight20Filled />
+                </Icon>
+                <n-form-item
+                  ignore-path-change
+                  :show-label="false"
+                  :path="`customBinds[${index}].folder`"
+                >
+                  <n-input
+                    v-model:value="
+                      obsidiclipPreferences.customBinds[index].folder
+                    "
+                    type="text"
+                    placeholder="folder"
+                    autosize
+                    style="min-width: 8rem"
+                    @change="handleBindChange()"
+                  />
+                </n-form-item>
+              </div>
+            </n-dynamic-input>
           </n-space>
         </n-collapse-item>
       </n-collapse>
@@ -118,6 +186,7 @@ import {
   NH1,
   NCollapse,
   NCollapseItem,
+  NDynamicInput,
   NForm,
   NFormItem,
   NInput,
@@ -127,6 +196,9 @@ import {
   NSpace,
   NSwitch,
 } from "naive-ui";
+import { Icon } from "@vicons/utils";
+import Add12Filled from "@vicons/fluent/Add12Filled";
+import FolderArrowRight20Filled from "@vicons/fluent/FolderArrowRight20Filled";
 
 import { DefaultConfig } from "~/entries/contentScript/utils";
 import { ObsidiclipPrefs, ReaderMethod, ModKey } from "~/types";
@@ -150,6 +222,29 @@ const modifierKeyOptions = [
 const handleChange = (key: string, value: string) => {
   const newOptions: Record<string, string> = {};
   newOptions[key] = value;
+
+  browser.storage.local.set(newOptions);
+};
+
+// default bind creation
+const onCreateBind = () => {
+  return {
+    mod: "altKey",
+    key: "",
+  };
+};
+
+// submit the entire customBinds array to browser storage
+// on change, removing the bind at the given index if provided
+const handleBindChange = (index?: number) => {
+  // deep clone the customBinds array
+  const binds = JSON.parse(
+    JSON.stringify(obsidiclipPreferences.value.customBinds),
+  );
+
+  const newOptions: Partial<ObsidiclipPrefs> = {
+    customBinds: index !== undefined ? binds.splice(index, 1) : binds,
+  };
 
   browser.storage.local.set(newOptions);
 };
